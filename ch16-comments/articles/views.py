@@ -2,8 +2,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
-from .models import Article
+from .models import Article, Tag
+from .serializers import TagSerializer
 
 
 class ArticleListView(LoginRequiredMixin, ListView):
@@ -61,3 +64,23 @@ class ArticleCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+@login_required
+def add_tag(request, article_id):
+    data = request.DATA
+    article_obj = fetch_article(article_id)
+    if not article_obj:
+        return JsonResponse({"data": "Article with this id does not exist"}, status=404)
+    tag_serializer = TagSerializer(data=data)
+    if tag_serializer.is_valid():
+        tag = tag_serializer.save()
+        article_obj.tags.add(tag)
+        return JsonResponse(tag_serializer.data, status=201)    
+    return JsonResponse(tag_serializer.errors, status=400)
+
+def fetch_article(article_id):
+    try:
+        article_obj = Article.objects.get(id=article_id)
+    except Article.DoesNotExist:
+        article_obj = None
+    return article_obj

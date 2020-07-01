@@ -5,7 +5,8 @@ from .views import (
     ArticleUpdateView,
     ArticleDetailView,
     ArticleDeleteView,
-    ArticleCreateView  # new
+    ArticleCreateView,  # new
+    add_tag
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
          ArticleDeleteView.as_view(), name='article_delete'),
     path('new/', ArticleCreateView.as_view(), name='article_new'),
     path('', ArticleListView.as_view(), name='article_list'),
+    path('tag/<int:article_id>/', add_tag, name='article_tag'),
 ]
